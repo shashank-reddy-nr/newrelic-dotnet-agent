@@ -1,6 +1,7 @@
 // Copyright 2020 New Relic, Inc. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -29,6 +30,12 @@ public class KafkaProducerWrapper : IWrapper
         var segment = transaction.StartMessageBrokerSegment(instrumentedMethodCall.MethodCall, MessageBrokerDestinationType.Topic, MessageBrokerAction.Produce, MessageBrokerVendorConstants.Kafka, topicPartition.Topic);
 
         transaction.InsertDistributedTraceHeaders(messageMetadata, DistributedTraceHeadersSetter);
+
+        var appName = agent.Configuration.ApplicationNames.FirstOrDefault();
+        if (!string.IsNullOrEmpty(appName))
+        {
+            DistributedTraceHeadersSetter(messageMetadata, "producerServiceName", appName);
+        }
 
         if (KafkaHelper.TryGetBootstrapServersFromCache(instrumentedMethodCall.MethodCall.InvocationTarget, out var bootstrapServers))
         {

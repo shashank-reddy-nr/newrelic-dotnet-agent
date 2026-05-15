@@ -81,6 +81,14 @@ public class KafkaConsumerWrapper : IWrapper
                 {
                     headersSize = GetHeadersSize(messageMetaData.Headers);
                     transaction.AcceptDistributedTraceHeaders(messageMetaData, DistributedTraceHeadersGetter, TransportType.Kafka);
+
+                    var producerServiceName = GetProducerServiceName(messageMetaData.Headers);
+                    if (!string.IsNullOrEmpty(producerServiceName))
+                    {
+                        transaction.AddCustomAttribute("kafka.producer.serviceName", producerServiceName);
+                        transaction.AddCustomAttribute("messaging.destination.name", topic);
+                        agent.GetExperimentalApi().RecordCountMetric($"Message/Kafka/Topic/Named/{topic}/Producer/{producerServiceName}", 1);
+                    }
                 }
 
                 ReportSizeMetrics(agent, transaction, topic, headersSize, messageAsObject);
@@ -168,5 +176,23 @@ public class KafkaConsumerWrapper : IWrapper
         return obj is string str ? Encoding.UTF8.GetByteCount(str) :
             obj is byte[] bytes ? bytes.Length :
             0;
+    }
+
+    private static string GetProducerServiceName(Headers headers)
+    {
+        if (headers == null)
+        {
+            return null;
+        }
+
+        foreach (var header in headers)
+        {
+            if (header.Key.Equals("producerServiceName", StringComparison.OrdinalIgnoreCase))
+            {
+                return Encoding.UTF8.GetString(header.GetValueBytes());
+            }
+        }
+
+        return null;
     }
 }
