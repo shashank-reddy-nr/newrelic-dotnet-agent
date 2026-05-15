@@ -32,6 +32,10 @@ public class KafkaProducerWrapper : IWrapper
         transaction.InsertDistributedTraceHeaders(messageMetadata, DistributedTraceHeadersSetter);
 
         var appName = agent.Configuration.ApplicationNames.FirstOrDefault();
+        if (string.IsNullOrEmpty(appName))
+        {
+            appName = System.Environment.GetEnvironmentVariable("NEW_RELIC_APP_NAME");
+        }
         if (!string.IsNullOrEmpty(appName))
         {
             DistributedTraceHeadersSetter(messageMetadata, "producerServiceName", appName);
