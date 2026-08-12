@@ -117,6 +117,7 @@ public class DefaultConfiguration : IConfiguration
 
         EventListenerSamplersEnabled = TryGetAppSettingAsBoolWithDefault("NewRelic.EventListenerSamplersEnabled", true);
         KafkaInternalMetricsEnabled = TryGetAppSettingAsBoolWithDefault("NewRelic.KafkaInternalMetricsEnabled", true);
+        KafkaClusterMetricsEnabled = TryGetAppSettingAsBoolWithDefault("NewRelic.KafkaClusterMetricsEnabled", false);
 
         ParseExpectedErrorConfigurations();
         ParseIgnoreErrorConfigurations();
@@ -1966,16 +1967,22 @@ public class DefaultConfiguration : IConfiguration
     #region AI Monitoring
 
     public bool AiMonitoringEnabled =>
-        // AI Monitoring is disabled in High Security Mode and can be disabled at the account level
-        !HighSecurityModeEnabled && ServerCanDisable(_serverConfiguration.AICollectionEnabled, EnvironmentOverrides(_localConfiguration.aiMonitoring.enabled, "NEW_RELIC_AI_MONITORING_ENABLED"));
+        // HSM disables AIM (defense-in-depth; connect-service also strips the keys server-side).
+        // Precedence: agent_config ai_monitoring.enabled (full override) > collect_ai (disable-only) > local/env.
+        !HighSecurityModeEnabled &&
+        ServerOverrides(_serverConfiguration.RpmConfig.AiMonitoringEnabled,
+            ServerCanDisable(_serverConfiguration.AICollectionEnabled,
+                EnvironmentOverrides(_localConfiguration.aiMonitoring.enabled, "NEW_RELIC_AI_MONITORING_ENABLED")));
 
     public bool AiMonitoringStreamingEnabled =>
         AiMonitoringEnabled &&
-        EnvironmentOverrides(_localConfiguration.aiMonitoring.streaming.enabled, "NEW_RELIC_AI_MONITORING_STREAMING_ENABLED");
+        ServerOverrides(_serverConfiguration.RpmConfig.AiMonitoringStreamingEnabled,
+            EnvironmentOverrides(_localConfiguration.aiMonitoring.streaming.enabled, "NEW_RELIC_AI_MONITORING_STREAMING_ENABLED"));
 
     public bool AiMonitoringRecordContentEnabled =>
         AiMonitoringEnabled &&
-        EnvironmentOverrides(_localConfiguration.aiMonitoring.recordContent.enabled, "NEW_RELIC_AI_MONITORING_RECORD_CONTENT_ENABLED");
+        ServerOverrides(_serverConfiguration.RpmConfig.AiMonitoringRecordContentEnabled,
+            EnvironmentOverrides(_localConfiguration.aiMonitoring.recordContent.enabled, "NEW_RELIC_AI_MONITORING_RECORD_CONTENT_ENABLED"));
 
     public Func<string, string, int> LlmTokenCountingCallback => _runTimeConfiguration.LlmTokenCountingCallback;
 
@@ -2116,6 +2123,9 @@ public class DefaultConfiguration : IConfiguration
 
     private bool? _forceSynchronousTimingCalculationHttpClient;
     public bool ForceSynchronousTimingCalculationHttpClient => _forceSynchronousTimingCalculationHttpClient ??= TryGetAppSettingAsBoolWithDefault("ForceSynchronousTimingCalculation.HttpClient", false);
+
+    private bool? _useHeaderBasedRequestQueueTimeForClassicAspNet;
+    public bool UseHeaderBasedRequestQueueTimeForClassicAspNet => _useHeaderBasedRequestQueueTimeForClassicAspNet ??= TryGetAppSettingAsBoolWithDefault("UseHeaderBasedRequestQueueTimeForClassicAspNet", true);
 
     private bool? _enableAspNetCore6PlusBrowserInjection;
     public bool EnableAspNetCore6PlusBrowserInjection =>
@@ -3029,6 +3039,7 @@ public class DefaultConfiguration : IConfiguration
     #endregion
 
     public bool KafkaInternalMetricsEnabled { get; private set; }
+    public bool KafkaClusterMetricsEnabled { get; private set; }
 
     public bool HybridHttpContextStorageEnabled => EnvironmentOverrides(TryGetAppSettingAsBoolWithDefault("HybridHttpContextStorageEnabled", false), "NEW_RELIC_HYBRID_HTTP_CONTEXT_STORAGE_ENABLED");
 

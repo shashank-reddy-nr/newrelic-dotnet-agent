@@ -415,6 +415,8 @@ public class ExhaustiveTestConfiguration : IConfiguration
 
     public bool KafkaInternalMetricsEnabled => true;
 
+    public bool KafkaClusterMetricsEnabled => false;
+
     public int? SamplingTarget => 1234;
 
     public int SpanEventsMaxSamplesStored => 4321;
@@ -428,6 +430,8 @@ public class ExhaustiveTestConfiguration : IConfiguration
     public int DatabaseStatementCacheCapacity => 1234;
 
     public bool ForceSynchronousTimingCalculationHttpClient => true;
+
+    public bool UseHeaderBasedRequestQueueTimeForClassicAspNet => true;
 
     public bool EnableAspNetCore6PlusBrowserInjection => true;
 

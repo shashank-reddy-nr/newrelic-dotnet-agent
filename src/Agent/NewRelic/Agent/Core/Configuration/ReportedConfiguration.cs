@@ -602,6 +602,9 @@ public class ReportedConfiguration : IConfiguration
     [JsonProperty("agent.kafka_internal_metrics_enabled")]
     public bool KafkaInternalMetricsEnabled => _configuration.KafkaInternalMetricsEnabled;
 
+    [JsonProperty("agent.kafka_cluster_metrics_enabled")]
+    public bool KafkaClusterMetricsEnabled => _configuration.KafkaClusterMetricsEnabled;
+
     [JsonProperty("agent.sampling_target")]
     public int? SamplingTarget => _configuration.SamplingTarget;
 
@@ -622,6 +625,9 @@ public class ReportedConfiguration : IConfiguration
 
     [JsonProperty("agent.force_synchronous_timing_calculation_for_http_client")]
     public bool ForceSynchronousTimingCalculationHttpClient => _configuration.ForceSynchronousTimingCalculationHttpClient;
+
+    [JsonProperty("agent.use_header_based_request_queue_time_for_classic_aspnet")]
+    public bool UseHeaderBasedRequestQueueTimeForClassicAspNet => _configuration.UseHeaderBasedRequestQueueTimeForClassicAspNet;
 
     [JsonProperty("agent.enable_asp_net_core_6plus_browser_injection")]
     public bool EnableAspNetCore6PlusBrowserInjection => _configuration.EnableAspNetCore6PlusBrowserInjection;

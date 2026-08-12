@@ -70,44 +70,44 @@ public abstract class LinuxMemcachedTest<T> : NewRelicIntegrationTest<T> where T
 
         var expectedMetrics = new List<Assertions.ExpectedMetric>
         {
-            new() { metricName = datastoreOperationMemcachedGet, callCount = 5 },
-            new() { metricName = datastoreOperationMemcachedIncrement, callCount = 1 },
-            new() { metricName = datastoreOperationMemcachedDecrement, callCount = 1 },
-            new() { metricName = datastoreOperationMemcachedRemove, callCount = 2 },
+            new() { metricName = datastoreOperationMemcachedGet, CallCountAllHarvests = 5 },
+            new() { metricName = datastoreOperationMemcachedIncrement, CallCountAllHarvests = 1 },
+            new() { metricName = datastoreOperationMemcachedDecrement, CallCountAllHarvests = 1 },
+            new() { metricName = datastoreOperationMemcachedRemove, CallCountAllHarvests = 2 },
 
-            new() { metricName = datastoreStatementMemcachedGet, callCount = 5 },
-            new() { metricName = datastoreStatementMemcachedIncrement, callCount = 1 },
-            new() { metricName = datastoreStatementMemcachedDecrement, callCount = 1 },
-            new() { metricName = datastoreStatementMemcachedRemove, callCount = 2 },
+            new() { metricName = datastoreStatementMemcachedGet, CallCountAllHarvests = 5 },
+            new() { metricName = datastoreStatementMemcachedIncrement, CallCountAllHarvests = 1 },
+            new() { metricName = datastoreStatementMemcachedDecrement, CallCountAllHarvests = 1 },
+            new() { metricName = datastoreStatementMemcachedRemove, CallCountAllHarvests = 2 },
                 
-            new() { metricName = datastoreStatementMemcachedGet, callCount = 5, metricScope = transactionName },
-            new() { metricName = datastoreStatementMemcachedIncrement, callCount = 1, metricScope = transactionName },
-            new() { metricName = datastoreStatementMemcachedDecrement, callCount = 1, metricScope = transactionName },
-            new() { metricName = datastoreStatementMemcachedRemove, callCount = 2, metricScope = transactionName },
+            new() { metricName = datastoreStatementMemcachedGet, CallCountAllHarvests = 5, metricScope = transactionName },
+            new() { metricName = datastoreStatementMemcachedIncrement, CallCountAllHarvests = 1, metricScope = transactionName },
+            new() { metricName = datastoreStatementMemcachedDecrement, CallCountAllHarvests = 1, metricScope = transactionName },
+            new() { metricName = datastoreStatementMemcachedRemove, CallCountAllHarvests = 2, metricScope = transactionName },
         };
 
         if (_fixture.DotnetVer == "8.0") // EnyimMemcachedCore 2.x
         {
-            expectedMetrics.Add(new() { metricName = datastoreAll, callCount = 20 });
-            expectedMetrics.Add(new() { metricName = datastoreAllOther, callCount = 20 });
-            expectedMetrics.Add(new() { metricName = datastoreMemcachedAll, callCount = 20 });
-            expectedMetrics.Add(new() { metricName = datastoreMemcachedAllOther, callCount = 20 });
-            expectedMetrics.Add(new() { metricName = datastoreOperationMemcachedAdd, callCount = 11 });
-            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, callCount = 11 });
-            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, callCount = 11, metricScope = transactionName });
+            expectedMetrics.Add(new() { metricName = datastoreAll, CallCountAllHarvests = 20 });
+            expectedMetrics.Add(new() { metricName = datastoreAllOther, CallCountAllHarvests = 20 });
+            expectedMetrics.Add(new() { metricName = datastoreMemcachedAll, CallCountAllHarvests = 20 });
+            expectedMetrics.Add(new() { metricName = datastoreMemcachedAllOther, CallCountAllHarvests = 20 });
+            expectedMetrics.Add(new() { metricName = datastoreOperationMemcachedAdd, CallCountAllHarvests = 11 });
+            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, CallCountAllHarvests = 11 });
+            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, CallCountAllHarvests = 11, metricScope = transactionName });
         }
         else if (_fixture.DotnetVer == "10.0") // EnyimMemcachedCore 3.x
         {
-            expectedMetrics.Add(new() { metricName = datastoreAll, callCount = 22 });
-            expectedMetrics.Add(new() { metricName = datastoreAllOther, callCount = 22 });
-            expectedMetrics.Add(new() { metricName = datastoreMemcachedAll, callCount = 22 });
-            expectedMetrics.Add(new() { metricName = datastoreMemcachedAllOther, callCount = 22 });
-            expectedMetrics.Add(new() { metricName = datastoreOperationMemcachedAdd, callCount = 12 });
-            expectedMetrics.Add(new() { metricName = datastoreOperationMemcachedTouch, callCount = 1 });
-            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, callCount = 12 });
-            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, callCount = 12, metricScope = transactionName });
-            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedTouch, callCount = 1 });
-            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedTouch, callCount = 1, metricScope = transactionName });
+            expectedMetrics.Add(new() { metricName = datastoreAll, CallCountAllHarvests = 22 });
+            expectedMetrics.Add(new() { metricName = datastoreAllOther, CallCountAllHarvests = 22 });
+            expectedMetrics.Add(new() { metricName = datastoreMemcachedAll, CallCountAllHarvests = 22 });
+            expectedMetrics.Add(new() { metricName = datastoreMemcachedAllOther, CallCountAllHarvests = 22 });
+            expectedMetrics.Add(new() { metricName = datastoreOperationMemcachedAdd, CallCountAllHarvests = 12 });
+            expectedMetrics.Add(new() { metricName = datastoreOperationMemcachedTouch, CallCountAllHarvests = 1 });
+            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, CallCountAllHarvests = 12 });
+            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedAdd, CallCountAllHarvests = 12, metricScope = transactionName });
+            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedTouch, CallCountAllHarvests = 1 });
+            expectedMetrics.Add(new() { metricName = datastoreStatementMemcachedTouch, CallCountAllHarvests = 1, metricScope = transactionName });
         }
         else
         {
@@ -129,7 +129,7 @@ public abstract class LinuxMemcachedTest<T> : NewRelicIntegrationTest<T> where T
 
 [Collection("MemcachedTests")]
 [Trait("Architecture", "amd64")]
-[Trait("Distro", "Ubuntu")]
+[Trait("TestArea", "Datastore")]
 public class MemcachedDotNet8Test : LinuxMemcachedTest<MemcachedDotNet8TestFixture>
 {
     public MemcachedDotNet8Test(MemcachedDotNet8TestFixture fixture, ITestOutputHelper output) : base(fixture, output)
@@ -139,7 +139,7 @@ public class MemcachedDotNet8Test : LinuxMemcachedTest<MemcachedDotNet8TestFixtu
 
 [Collection("MemcachedTests")]
 [Trait("Architecture", "amd64")]
-[Trait("Distro", "Ubuntu")]
+[Trait("TestArea", "Datastore")]
 public class MemcachedDotNet10Test : LinuxMemcachedTest<MemcachedDotNet10TestFixture>
 {
     public MemcachedDotNet10Test(MemcachedDotNet10TestFixture fixture, ITestOutputHelper output) : base(fixture, output)

@@ -199,11 +199,6 @@ public abstract class RemoteApplicationFixture : IDisposable
     {
         CommonUtils.ModifyOrCreateXmlAttributeInNewRelicConfig(destinationNewRelicConfigFilePath, new[] { "configuration", "service" }, "licenseKey", TestConfiguration.LicenseKey);
         CommonUtils.ModifyOrCreateXmlAttributeInNewRelicConfig(destinationNewRelicConfigFilePath, new[] { "configuration", "service" }, "host", TestConfiguration.CollectorUrl);
-        if (TestSettingCategory == "CSP")
-        {
-            var securityPoliciesToken = "ffff-ffff-ffff-ffff";
-            CommonUtils.ModifyOrCreateXmlNodeInNewRelicConfig(destinationNewRelicConfigFilePath, new[] { "configuration" }, "securityPoliciesToken", securityPoliciesToken);
-        }
     }
 
     public RemoteApplicationFixture SetAdditionalEnvironmentVariables(IDictionary<string, string> envVars)
@@ -290,21 +285,22 @@ public abstract class RemoteApplicationFixture : IDisposable
                     var captureStandardOutput = RemoteApplication.CaptureStandardOutput;
 
                     var timer = new ExecutionTimer();
-                    timer.Aggregate(() =>
-                    {
-                        RemoteApplication.DeleteWorkingSpace();
-
-                        RemoteApplication.CopyToRemote();
-
-                        SetupConfiguration();
-
-                        RemoteApplication.Start(CommandLineArguments, EnvironmentVariables, captureStandardOutput);
-                    });
-
-                    TestLogger?.WriteLine($"Remote application build/startup time: {timer.Total:N4} seconds");
 
                     try
                     {
+                        timer.Aggregate(() =>
+                        {
+                            RemoteApplication.DeleteWorkingSpace();
+
+                            RemoteApplication.CopyToRemote();
+
+                            SetupConfiguration();
+
+                            RemoteApplication.Start(CommandLineArguments, EnvironmentVariables, captureStandardOutput);
+                        });
+
+                        TestLogger?.WriteLine($"Remote application build/startup time: {timer.Total:N4} seconds");
+
                         timer = new ExecutionTimer();
                         timer.Aggregate(ExerciseApplication);
                         TestLogger?.WriteLine($"ExerciseApplication execution time: {timer.Total:N4} seconds");
@@ -334,7 +330,19 @@ public abstract class RemoteApplicationFixture : IDisposable
                                 // hosted tests, unfortunately, we just punt that.
                                 if (RemoteApplication.ValidateHostedWebCoreOutput)
                                 {
-                                    SubprocessLogValidator.ValidateHostedWebCoreConsoleOutput(RemoteApplication.CapturedOutput.StandardOutput, TestLogger);
+                                    try
+                                    {
+                                        SubprocessLogValidator.ValidateHostedWebCoreConsoleOutput(RemoteApplication.CapturedOutput.StandardOutput, TestLogger);
+                                    }
+                                    catch (Exception hwcEx)
+                                    {
+                                        // If the HWC process hung on shutdown, WaitForOutput() times out and
+                                        // StandardOutput is empty, causing spurious "file ended early" failures.
+                                        // Convert to a retryable condition instead of an immediate test failure.
+                                        TestLogger?.WriteLine($"HostedWebCore log validation failed: {hwcEx.Message}. Will retry if attempts remain.");
+                                        retryTest = true;
+                                        retryMessage = "HostedWebCore log validation failed.";
+                                    }
                                 }
                                 else
                                 {
@@ -344,6 +352,14 @@ public abstract class RemoteApplicationFixture : IDisposable
                             else
                             {
                                 TestLogger?.WriteLine("Note: child process application does not redirect output because _remoteApplication.CaptureStandardOutput = false. HostedWebCore validation cannot take place without the standard output. This is common for non-web and self-hosted applications.");
+                            }
+
+                            // If the process is still running (e.g. hung on graceful shutdown), force-kill it
+                            // so that WaitForExit() returns promptly and the port is free for any retry.
+                            if (RemoteApplication.IsRunning)
+                            {
+                                TestLogger?.WriteLine("Remote application is still running after output capture; force killing.");
+                                RemoteApplication.Shutdown(force: true);
                             }
 
                             RemoteApplication.WaitForExit();
